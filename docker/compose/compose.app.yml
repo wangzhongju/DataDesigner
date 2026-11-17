@@ -1,0 +1,27 @@
+services:
+  datadesigner:
+    image: "${DATA_DESIGNER_IMAGE:-datadesigner-local:latest}"
+    pull_policy: never
+    init: true
+    user: "0:0"
+    command: ["sleep", "infinity"]
+    environment:
+      DOCKER_USER: "${DOCKER_USER:?Use docker/docker.sh to set the host user}"
+      DOCKER_USER_ID: "${DOCKER_USER_ID:?Host UID is required}"
+      DOCKER_GRP: "${DOCKER_GRP:?Host group is required}"
+      DOCKER_GRP_ID: "${DOCKER_GRP_ID:?Host GID is required}"
+      HOME: "/home/${DOCKER_USER}"
+      USER: "${DOCKER_USER}"
+      LOGNAME: "${DOCKER_USER}"
+    healthcheck:
+      test: ["CMD-SHELL", 'getent passwd "$${DOCKER_USER}" >/dev/null && test -f "$${HOME}/.bashrc"']
+      interval: 2s
+      timeout: 2s
+      retries: 15
+    env_file:
+      - path: ../env/app.env
+        required: false
+    volumes:
+      - ../..:/workspace
+      - ../home:/home
+      - ../state:/state
